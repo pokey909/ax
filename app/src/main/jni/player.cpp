@@ -9,6 +9,7 @@
 
 #include "Stream.h"
 #include "Downloader.h"
+#include <gst/gst.h>
 
 #define STREAM_FILENAME "/Users/alexanderlenhardt/test.mp3" 
 #define CHUNK_SIZE 1024 * 10   /* Amount of bytes we are sending in each buffer */ 
@@ -256,7 +257,7 @@ Player::~Player() {
   g_print("exiting\n"); 
 }
 
-void Player::play(std::string &filename) {
+void Player::play(const char* filename) {
   d->start(filename);
 }
 

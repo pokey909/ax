@@ -20,9 +20,9 @@ endif
 
 LOCAL_SRC_FILES += $(foreach INTERFACE,\
 	$(SWIG_INTERFACES),\
-	$(basename $(INTERFACE)_wrap.$(SWIG_LANG)))
+	$(basename $(INTERFACE))_wrap.$(SWIG_LANG))
 
-LOCAL_CPP_EXTENSION += .cxx
+LOCAL_CPP_EXTENSION +=.cxx
 
 %_wrap.$(SWIG_LANG) : %.i
 	$(call host-mkdir,$(SWIG_OUTDIR))

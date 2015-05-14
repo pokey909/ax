@@ -21,6 +21,7 @@ LOCAL_MODULE    := player
 
 CURLCPP_SRC := $(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/curlcpp/*.cpp))
 LOCAL_SRC_FILES := Downloader.cpp player.cpp Stream.cpp $(CURLCPP_SRC)
+LOCAL_CPP_EXTENSION := .cpp
 
 LOCAL_C_INCLUDES += \
   $(NDK_PATH)/platforms/$(TARGET_PLATFORM)/arch-$(TARGET_ARCH)/usr/include \
@@ -53,5 +54,8 @@ LOCAL_CPPFLAGS += -ID:/Android/projects/Gstreamer-Android-example/app/src/main/j
 include $(LOCAL_PATH)/swig-generate.mk
 include $(BUILD_SHARED_LIBRARY)
 
+
 #### Build GStreamer lib ####################################################
 include $(LOCAL_PATH)/build-gstreamer.mk
+
+

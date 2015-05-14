@@ -1,5 +1,3 @@
-include $(CLEAR_VARS)
-
 GSTREAMER_ROOT_ANDROID := /Android/gstreamer-1.0-android-armv7-debug-1.4.5
 
 ifndef GSTREAMER_ROOT
