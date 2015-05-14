@@ -121,7 +121,7 @@ public:
     gst_element_set_state (data.pipeline, GST_STATE_NULL); 
   }
 
-  void seek(gint64 sec) {
+  void seek(guint64 sec) {
     size_t off = (size_t)(0.5 * data.fileLen);
     gst_element_seek_simple(data.pipeline, GST_FORMAT_BYTES, GST_SEEK_FLAG_FLUSH, (gint64)off);
   }
@@ -269,6 +269,6 @@ void Player::stop() {
   d->stop();
 }
 
-void Player::seek(std::chrono::milliseconds ms) {
-  d->seek(ms.count() * 1000);
+void Player::seek(uint64_t ms) {
+  d->seek(ms / 1000);
 }
