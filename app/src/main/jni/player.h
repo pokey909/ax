@@ -13,7 +13,7 @@ public:
 	~Player();
 
 	// Interface
-	void play(std::string filename);	
+	void play(std::string& filename);	
 	void pause();
 	void stop();
 	void seek(std::chrono::milliseconds ms);

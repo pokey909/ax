@@ -256,7 +256,7 @@ Player::~Player() {
   g_print("exiting\n"); 
 }
 
-void Player::play(std::string filename) {
+void Player::play(std::string &filename) {
   d->start(filename);
 }
 
