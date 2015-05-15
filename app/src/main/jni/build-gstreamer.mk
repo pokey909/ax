@@ -13,7 +13,7 @@ GSTREAMER_NDK_BUILD_PATH  := $(GSTREAMER_ROOT_ANDROID)/share/gst-android/ndk-bui
 include $(GSTREAMER_NDK_BUILD_PATH)/plugins.mk
 GSTREAMER_PLUGINS         := $(GSTREAMER_PLUGINS_CORE) $(GSTREAMER_PLUGINS_PLAYBACK) $(GSTREAMER_PLUGINS_CODECS) $(GSTREAMER_PLUGINS_NET) $(GSTREAMER_PLUGINS_SYS) $(GSTREAMER_PLUGINS_CODECS_RESTRICTED)
 
-GSTREAMER_PLUGINS := coreelements audioconvert audioresample typefindfunctions volume autodetect opensles playback fragmented audioparsers androidmedia soup id3tag id3demux
+GSTREAMER_PLUGINS := coreelements appsrc audioconvert audioresample typefindfunctions volume autodetect opensles playback fragmented audioparsers androidmedia soup id3tag id3demux
 #G_IO_MODULES              := gnutls
 GSTREAMER_EXTRA_DEPS      := glib-2.0 nettle gstreamer-pbutils-1.0
 LOCAL_C_INCLUDES += -I$(LOCAL_PATH)curlpp/include
