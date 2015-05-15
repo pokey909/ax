@@ -44,9 +44,9 @@ LOCAL_STATIC_LIBRARIES := curl-prebuilt
 ifeq ($(TARGET_ARCH),arm)
   LOCAL_CFLAGS := -mfpu=vfp -mfloat-abi=softfp -fno-short-enums
 endif
-COMMON_CFLAGS := -Werror -DANDROID
+COMMON_CFLAGS := -Werror -DANDROID -g
 LOCAL_CFLAGS += $(COMMON_CFLAGS)
-LOCAL_CPPFLAGS += -ID:/Android/projects/Gstreamer-Android-example/app/src/main/jni/curlcpp/include -frtti -fexceptions
+LOCAL_CPPFLAGS += -ID:/Android/projects/Gstreamer-Android-example/app/src/main/jni/curlcpp/include -frtti -fexceptions -g
 
 
 

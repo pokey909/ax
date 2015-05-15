@@ -1,5 +1,6 @@
 /* File : engine.i */
 %module audiox
+%include <stdint.i>
 
 /* Anything in the following section is added verbatim to the .cxx wrapper file */
 %{

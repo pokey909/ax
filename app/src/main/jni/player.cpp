@@ -64,8 +64,12 @@ public:
       
       /* Build the pipeline */
       g_print("launch playbin2\n");
-      data.pipeline = gst_parse_launch ("playbin uri=appsrc://", NULL);
-      g_signal_connect (data.pipeline, "source-setup", G_CALLBACK (on_source_setup), &data);
+      data.pipeline = gst_element_factory_make ("playbin", NULL);//gst_parse_launch ("playbin uri=appsrc://", NULL);
+      /* set to read from appsrc */
+      g_object_set (data.pipeline, "uri", "appsrc://", NULL);
+      g_signal_connect (data.pipeline, "deep-notify::source",
+      (GCallback) &Player_impl::found_source, &data);
+      //g_signal_connect (data.pipeline, "source-setup", G_CALLBACK (on_source_setup), &data);
       
       /* Instruct the bus to emit signals for each received message, and connect to the interesting signals */
       GstBus* bus = gst_element_get_bus (data.pipeline);
@@ -99,13 +103,9 @@ public:
 
     data.httpStream = std::make_shared<Stream>();
     data.httpStream->streamInfo().url = uri;
-
-    g_print("connect appsrc signals\n");
-    data.need_data_id = g_signal_connect (data.app_source, "need-data", G_CALLBACK (&Player_impl::on_start_feed), &data);
-    data.enough_data_id = g_signal_connect (data.app_source, "enough-data", G_CALLBACK (&Player_impl::on_stop_feed), &data);
-    g_signal_connect (data.app_source, "seek-data", G_CALLBACK (&Player_impl::seek_cb), &data);
-    g_object_set (data.app_source, "size", (gint64) data.fileLen, NULL);
-
+    data.fileLen = 500000;
+    data.thiz = this;
+    
     /* Start playing the pipeline */
     g_print("pipeline set to PLAYING\n");
     
@@ -182,8 +182,23 @@ private:
     g_object_set (G_OBJECT (data.app_source), "format", GST_FORMAT_BYTES, NULL);
     // g_object_set (G_OBJECT (data.app_source), "min-latency", 0,
     //   "max-latency", 1, NULL);
+    g_print("connect appsrc signals\n");
+    data.need_data_id = g_signal_connect (data.app_source, "need-data", G_CALLBACK (&Player_impl::on_start_feed), &data);
+    data.enough_data_id = g_signal_connect (data.app_source, "enough-data", G_CALLBACK (&Player_impl::on_stop_feed), &data);
+    g_signal_connect (data.app_source, "seek-data", G_CALLBACK (&Player_impl::seek_cb), &data);
+    g_object_set (data.app_source, "size", (gint64)500000, NULL);
   }
 
+  static void
+  found_source (GObject * object, GObject * orig, GParamSpec * pspec, CustomData * app) {
+     g_object_get (orig, pspec->name, &app->app_source, NULL);
+     GST_DEBUG ("got appsrc %p", app->app_source);
+     gst_util_set_object_arg (G_OBJECT (app->app_source), "stream-type", "seekable");
+     g_signal_connect (app->app_source, "need-data", G_CALLBACK (&Player_impl::on_start_feed), app);
+     g_signal_connect (app->app_source, "enough-data", G_CALLBACK (&Player_impl::on_stop_feed), app);
+     g_signal_connect (app->app_source, "seek-data", G_CALLBACK (&Player_impl::seek_cb), app);
+     g_object_set (app->app_source, "size", (gint64)500000, NULL);
+  }
 
   /* This signal callback triggers when appsrc needs data. Here, we add an idle handler 
    * to the mainloop to start pushing data into the appsrc */ 

@@ -6,7 +6,7 @@ ifndef SWIG_PACKAGE
 	$(error SWIG_PACKAGE is not defined.)
 endif
 
-SWIG_OUTDIR := $(NDK_PROJECT_PATH)/src/$(subst .,/,$(SWIG_PACKAGE))
+SWIG_OUTDIR := $(LOCAL_PATH)/../java/$(subst .,/,$(SWIG_PACKAGE))
 
 ifndef SWIG_LANG
 	SWIG_MODE := -c++

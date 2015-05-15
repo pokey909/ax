@@ -9,4 +9,9 @@
     <string name="location">Location</string>
     <string name="cant_read_folder">folder cannot be read</string>
     <string name="icon">Icon</string>
+    <string name="title_activity_main3">Main3Activity</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
 </resources>
