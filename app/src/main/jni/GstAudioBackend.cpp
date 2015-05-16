@@ -11,22 +11,20 @@ GST_DEBUG_CATEGORY (playbin2);
 
 using namespace AudioX;
 
-GstAudioBackend::GstAudioBackend() : m_sourceid(0), m_offset(0) {
+GstAudioBackend::GstAudioBackend() : m_sourceid(0), m_offset(0), m_pipeline(NULL) {
+	m_mainLoop = g_main_loop_new (NULL, FALSE);
+	m_mainThread = std::move(std::thread([this](){ g_main_loop_run (m_mainLoop); }));
 }
 
 GstAudioBackend::~GstAudioBackend() {
     stop();
+    g_main_loop_quit(m_mainLoop);
+    g_main_loop_unref (m_mainLoop);
+    m_mainThread.join();
 }
 
 void GstAudioBackend::start(std::weak_ptr<Stream> source) {
-	std::lock_guard<std::mutex> lock(m_handlerMutex);
-	if (m_mainThread.joinable()) {
-		gst_element_set_state (m_pipeline, GST_STATE_NULL);
-	    g_main_loop_quit(m_mainLoop);
-	    g_main_loop_unref (m_mainLoop);
-	    m_mainThread.join();
-	    gst_object_unref (m_pipeline); 
-	}
+	releasePipeline();
 	init();
 	m_source = source;
 	GST_INFO_OBJECT(m_pipeline, "fset PLAYING state"); 
@@ -34,13 +32,21 @@ void GstAudioBackend::start(std::weak_ptr<Stream> source) {
 }
 
 void GstAudioBackend::stop() {
-	std::lock_guard<std::mutex> lock(m_handlerMutex);
-	if (m_mainThread.joinable()) {
+	releasePipeline();
+}
+
+void GstAudioBackend::releasePipeline() {
+	if (m_pipeline) {
+		std::lock_guard<std::mutex> lock(m_handlerMutex);
+		GstFlowReturn ret;
+		g_signal_emit_by_name (m_appsrc, "end-of-stream", &ret);
+		if (m_sourceid != 0) { 
+			g_source_remove (m_sourceid); 
+			m_sourceid = 0; 
+		} 
 		gst_element_set_state (m_pipeline, GST_STATE_NULL);
-	    g_main_loop_quit(m_mainLoop);
-	    g_main_loop_unref (m_mainLoop);
-	    m_mainThread.join();
 	    gst_object_unref (m_pipeline); 
+	    m_pipeline = NULL;
 	}
 }
 
@@ -69,10 +75,6 @@ void GstAudioBackend::init() {
 	gst_bus_add_signal_watch (bus);
 	g_signal_connect (G_OBJECT (bus), "message::error", G_CALLBACK(on_error_cb), this);
 	gst_object_unref (bus);
-
-	m_mainLoop = g_main_loop_new (NULL, FALSE);
-	m_mainThread = std::move(std::thread([this](){ g_main_loop_run (m_mainLoop); }));
-      
 }
 
 /* GStreamer callbacks */
@@ -125,6 +127,7 @@ gboolean GstAudioBackend::seek_cb(GstElement* appsrc, guint64 position, GstAudio
 
 // helper callback to handle data transfers from the source to appsrc
 gboolean GstAudioBackend::on_push_data(GstAudioBackend* thiz) {
+	std::lock_guard<std::mutex> lock(thiz->m_handlerMutex);
     GstBuffer *buffer; 
     GstFlowReturn ret; 
 

@@ -19,6 +19,7 @@ public:
 
 private:
 	void init();
+	void releasePipeline();
 	static void on_source_setup(GObject * object, GObject * orig, GParamSpec * pspec, GstAudioBackend * thiz);
 	static void on_start_feed(GstElement *source, guint size, GstAudioBackend *thiz);
 	static void on_stop_feed(GstElement *source, GstAudioBackend *thiz);

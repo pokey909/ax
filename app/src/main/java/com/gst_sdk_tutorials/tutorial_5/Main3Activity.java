@@ -8,9 +8,19 @@ import org.freedesktop.gstreamer.GStreamer;
 import com.audiox.Player;
 import android.widget.Toast;
 import android.util.Log;
+import android.widget.Spinner;
+import android.widget.AdapterView;
+import android.view.View;
+import android.widget.ArrayAdapter;
 
-public class Main3Activity extends Activity {
+public class Main3Activity extends Activity implements AdapterView.OnItemSelectedListener {
     private Player m_player;
+
+    String[] items = {  "http://www.noiseaddicts.com/samples/281.mp3",
+                        "http://www.noiseaddicts.com/samples/181.mp3",
+                        "http://www.noiseaddicts.com/samples/4637.mp3",
+                        "http://www.noiseaddicts.com/samples/3185.mp3",
+                        "http://www.noiseaddicts.com/samples/3719.mp3" };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,6 +33,24 @@ public class Main3Activity extends Activity {
             return;
         }
         m_player = new Player();
+
+        Spinner spin = (Spinner) findViewById(R.id.spinner);
+        spin.setOnItemSelectedListener(this);
+
+        ArrayAdapter aa = new ArrayAdapter(
+                this,
+                android.R.layout.simple_spinner_item,
+                items);
+        aa.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+        spin.setAdapter(aa);
+    }
+    public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+        m_player.play(items[position]);
+    }
+
+    public void onNothingSelected(AdapterView<?> parent) {
+        m_player.stop();
     }
 
     @Override
