@@ -17,29 +17,48 @@ namespace AudioX {
 		gptrEnd = 0;
 	}
 
+	void Stream::setUrl(const std::string& url) {
+		m_info.url = url;
+	}
+	
 	void Stream::reset() {
-		buf.clear();
 		gptrNext = 0;
 		gptrEnd = 0;
 		eosFlag = false;
+		buf.clear();
 		m_info = StreamInfo();
 	}
 
 	size_t Stream::read(char* buffer, std::streamsize maxSize) {
 		std::streamsize n = (std::min)(gptrEnd - gptrNext, maxSize);
-		memcpy(buffer, &buf[gptrNext], n);
-		gptrNext += n;
+		if (n > 0) {
+			memcpy(buffer, &buf[gptrNext], n);
+			gptrNext += n;
+		} else {
+			n = 0;
+		}
 		return n;
 	}
 	void Stream::read(std::vector<char>& buffer) {
-		buffer.insert(buffer.end(), &buf[0] + gptrNext, &buf[0] + gptrEnd);
-		gptrNext = gptrEnd;
+		std::streamsize n = gptrEnd - gptrNext;
+		if (n > 0) {
+			buffer.insert(buffer.end(), &buf[0] + gptrNext, &buf[0] + gptrEnd);
+			gptrNext = gptrEnd;
+		}
 	}
 
 	void Stream::write(const char* data, std::streamsize size) {
 		buf.insert(buf.end(), data, data + size);
 		gptrEnd += size;
 		waitDataCond.notify_one();
+	}
+
+	void Stream::seek(std::streamsize off) {
+		if (off > buf.size()) {
+			buf.resize(off);
+			gptrEnd = off;
+		}
+		gptrNext = off;
 	}
 
 	bool Stream::waitReadyRead(std::streamsize minBytesAvail) {

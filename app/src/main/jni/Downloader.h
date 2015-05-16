@@ -11,14 +11,6 @@ using curl::curl_easy;
 
 namespace AudioX {
 
-	// passed as user data to callbacks
-	//struct Info {
-	//	Info(std::weak_ptr<AudioX::Stream> stream) : ss(stream), abort(false), curl(nullptr) {
-	//	}
-	//	std::weak_ptr<AudioX::Stream> ss;
-	//	CURL* curl;
-	//};
-
 	class Downloader {
 	public:
 		Downloader();
@@ -34,7 +26,6 @@ namespace AudioX {
 	private:
 		curl_easy easy;
 		std::weak_ptr<Stream> m_stream;
-		//std::unique_ptr<Info> m_info;
 		std::thread m_thread;
 
 		std::string url;

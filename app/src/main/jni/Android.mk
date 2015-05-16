@@ -2,12 +2,12 @@ LOCAL_PATH := $(call my-dir)
 
 # Edit this line
 SHELL := PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin /bin/bash
+CURL_PATH := d:/Android/curl-android-ios
 
 ####### CURL ###############
 include $(CLEAR_VARS)
 LOCAL_MODULE := curl-prebuilt
-LOCAL_SRC_FILES := \
-  d:/Android/curl-android-ios/prebuilt-with-ssl/android/$(TARGET_ARCH_ABI)/libcurl.a
+LOCAL_SRC_FILES := $(CURL_PATH)/prebuilt-with-ssl/android/$(TARGET_ARCH_ABI)/libcurl.a
 include $(PREBUILT_STATIC_LIBRARY)
 ############################
 
@@ -20,7 +20,9 @@ LOCAL_MODULE    := player
 #### Source files ###########################################################
 
 CURLCPP_SRC := $(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/curlcpp/*.cpp))
-LOCAL_SRC_FILES := Downloader.cpp player.cpp Stream.cpp $(CURLCPP_SRC)
+AUDIOX_SRC := $(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/*.cpp))
+
+LOCAL_SRC_FILES := $(AUDIOX_SRC) $(CURLCPP_SRC)
 LOCAL_CPP_EXTENSION := .cpp
 
 LOCAL_C_INCLUDES += \

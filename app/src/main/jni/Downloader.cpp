@@ -1,6 +1,6 @@
 #include "Downloader.h"
 #include "curl_option.h"
-
+#include <gst/gst.h>
 #include <thread>
 #include <locale>
 
@@ -29,11 +29,12 @@ namespace AudioX {
 				si.avgDownloadSpeed = (1000.0 * ss->size()) / dt.count();
 			}
 			else {
-				std::cout << "Downloader: stream object is gone. Aborting download.\n";
+				g_print("Downloader: stream object is gone. Aborting download.\n");
 				thiz->abort = true;
 				return 0;
 			}
 		}
+		g_print("Downloader write cb: %lld", (int64_t)realsize);
 		return realsize;
 	}
 
@@ -62,6 +63,7 @@ namespace AudioX {
 	}
 
 	Downloader::Downloader() {
+		url = " ";
 	}
 
 	Downloader::~Downloader() {
@@ -70,14 +72,14 @@ namespace AudioX {
 
 	void Downloader::cancel() {
 		if (m_thread.joinable()) {
-			std::cout << "Stopping active download (URL: " << url << ")... ";
+			g_print("Stopping active download (URL: %s)...\n", url.c_str());
 			abort = true;
 			m_thread.join();
 			std::cout << "Done!\n";
 		}
 	}
 
-	void Downloader::newRequest(const std::string& url, std::weak_ptr<Stream> stream) {
+	void Downloader::newRequest(const std::string& uri, std::weak_ptr<Stream> stream) {
 		cancel();
 		
 		m_stream = stream;
@@ -86,14 +88,15 @@ namespace AudioX {
 			s->streamInfo().url = url;
 		}
 		else {
-			std::cout << "Downloader Error: no stream object set!\n";
+			g_print("Downloader Error: no stream object set!\n");
 			return;
 		}
 
-		this->url = url;
+		this->url = uri;
 		abort = false;
 
-		m_thread = std::move(std::thread([this, &url]{
+		g_print ("DOWNLOADER GPRINT %s\n", g_strdup(uri.c_str())); 
+		m_thread = std::move(std::thread([this]{
 			easy.add<CURLOPT_URL>(url.c_str());
 			easy.add<CURLOPT_FOLLOWLOCATION>(1L);
 			easy.add<CURLOPT_XFERINFOFUNCTION>(&Downloader::prog_cb);
@@ -139,9 +142,9 @@ namespace AudioX {
 			}
 			else {
 				abort = true;
-				std::cout << "Couldnt mark EOS. Stream object gone.\n";
+				g_print("Couldnt mark EOS. Stream object gone.\n");
 			}
-			std::cout << "Download from " << url << " finished!\n";
+			g_print("Download from %s finished!\n", url.c_str());
 		}));
 	}
 

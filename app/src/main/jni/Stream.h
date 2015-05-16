@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <iomanip>
 #include <iostream>
+#include <cstdint>
 
 namespace AudioX {
 
@@ -74,17 +75,18 @@ namespace AudioX {
 
 		size_t read(char* buffer, std::streamsize maxSize);
 		void read(std::vector<char>& buffer);
-
 		void write(const char* data, std::streamsize size);
+		void seek(std::streamsize off);
 
 		inline std::streamsize size() const { return gptrEnd; }
-
+		inline std::streamsize pos() const { return gptrNext; }
 		inline std::streamsize available() const { return gptrEnd - gptrNext; }
 		inline void markEos() { eosFlag = true; waitDataCond.notify_all(); }
 		inline bool eos() const { return eosFlag; }
 
 		StreamInfo& streamInfo() { return m_info; }
-
+		void setUrl(const std::string& url);
+		
 		void reset();
 
 		bool waitReadyRead(std::streamsize minBytesAvail = 1);
