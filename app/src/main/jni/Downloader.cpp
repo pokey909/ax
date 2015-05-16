@@ -34,7 +34,6 @@ namespace AudioX {
 				return 0;
 			}
 		}
-		g_print("Downloader write cb: %lld", (int64_t)realsize);
 		return realsize;
 	}
 

@@ -230,13 +230,13 @@ Player::~Player() {
 }
 
 void Player::play(const char* filename) {
-  m_backend.stop();
   http.cancel();
   m_stream = std::make_shared<AudioX::Stream>();
   m_stream->setUrl(filename);
-  m_backend.start(m_stream);
   std::string s = filename;
   http.newRequest(s, m_stream);
+  m_backend.start(m_stream);
+  g_print("AFTER START");
 }
 
 void Player::pause() {

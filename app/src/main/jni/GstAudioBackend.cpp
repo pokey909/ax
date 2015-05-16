@@ -12,25 +12,36 @@ GST_DEBUG_CATEGORY (playbin2);
 using namespace AudioX;
 
 GstAudioBackend::GstAudioBackend() : m_sourceid(0), m_offset(0) {
-	init();
 }
 
 GstAudioBackend::~GstAudioBackend() {
     stop();
-    std::lock_guard<std::mutex> lock(m_handlerMutex); // be sure the handler is not running when we connect/disconnect it
-    g_main_loop_quit(m_mainLoop);
-    m_mainThread.join();
-    gst_object_unref (m_pipeline); 
 }
 
 void GstAudioBackend::start(std::weak_ptr<Stream> source) {
+	std::lock_guard<std::mutex> lock(m_handlerMutex);
+	if (m_mainThread.joinable()) {
+		gst_element_set_state (m_pipeline, GST_STATE_NULL);
+	    g_main_loop_quit(m_mainLoop);
+	    g_main_loop_unref (m_mainLoop);
+	    m_mainThread.join();
+	    gst_object_unref (m_pipeline); 
+	}
+	init();
 	m_source = source;
+	GST_INFO_OBJECT(m_pipeline, "fset PLAYING state"); 
 	gst_element_set_state (m_pipeline, GST_STATE_PLAYING);
 }
 
 void GstAudioBackend::stop() {
-	gst_element_set_state (m_pipeline, GST_STATE_NULL); 
-	m_source.reset();
+	std::lock_guard<std::mutex> lock(m_handlerMutex);
+	if (m_mainThread.joinable()) {
+		gst_element_set_state (m_pipeline, GST_STATE_NULL);
+	    g_main_loop_quit(m_mainLoop);
+	    g_main_loop_unref (m_mainLoop);
+	    m_mainThread.join();
+	    gst_object_unref (m_pipeline); 
+	}
 }
 
 void GstAudioBackend::pause() {
@@ -79,7 +90,6 @@ void GstAudioBackend::on_source_setup(GObject * object, GObject * orig, GParamSp
 }
 
 void GstAudioBackend::on_start_feed(GstElement *source, guint size, GstAudioBackend *thiz) {
-	std::lock_guard<std::mutex> lock(thiz->m_handlerMutex); // be sure no handler is not running when we connect/disconnect it
     if (thiz->m_sourceid == 0) { 
       g_print ("Start feeding\n"); 
       thiz->m_sourceid = g_idle_add ((GSourceFunc) GstAudioBackend::on_push_data, thiz); 
@@ -87,7 +97,6 @@ void GstAudioBackend::on_start_feed(GstElement *source, guint size, GstAudioBack
 }
 
 void GstAudioBackend::on_stop_feed(GstElement *source, GstAudioBackend *thiz) {
-	std::lock_guard<std::mutex> lock(thiz->m_handlerMutex); // be sure no handler is not running when we connect/disconnect it
 	if (thiz->m_sourceid != 0) { 
 		g_print ("Stop feeding\n"); 
 		g_source_remove (thiz->m_sourceid); 
@@ -116,7 +125,6 @@ gboolean GstAudioBackend::seek_cb(GstElement* appsrc, guint64 position, GstAudio
 
 // helper callback to handle data transfers from the source to appsrc
 gboolean GstAudioBackend::on_push_data(GstAudioBackend* thiz) {
-	std::lock_guard<std::mutex> lock(thiz->m_handlerMutex);
     GstBuffer *buffer; 
     GstFlowReturn ret; 
 
@@ -149,7 +157,7 @@ gboolean GstAudioBackend::on_push_data(GstAudioBackend* thiz) {
 			} 
 			return TRUE; 
 	    }  else if (source->eos() && source->available() == 0) {
-			std::cout << "Emitting EOS\n";
+			g_print("Emitting EOS\n");
 			/* we are EOS, send end-of-stream */
 			g_signal_emit_by_name (thiz->m_appsrc, "end-of-stream", &ret);
 			return FALSE;      
@@ -158,7 +166,7 @@ gboolean GstAudioBackend::on_push_data(GstAudioBackend* thiz) {
 			return TRUE;
 	    }
 	} else {
-			std::cout << "Emitting EOS because source stream is gone.\n";
+			g_print("Emitting EOS because source stream is gone.\n");
 			g_signal_emit_by_name (thiz->m_appsrc, "end-of-stream", &ret);
 			return FALSE;      
 	}
